@@ -28,7 +28,7 @@ const SchemaVisualizer: React.FC<SchemaVisualizerProps> = ({ schema }) => {
         ))}
       </div>
 
-      {Object.keys(schema).length > 1 && (
+      {/* {Object.keys(schema).length > 1 && (
         <div className="mt-4 p-4 border rounded-md bg-gray-50">
           <h3 className="font-medium mb-2">Table Relationships</h3>
           <ul className="space-y-2">
@@ -69,7 +69,7 @@ const SchemaVisualizer: React.FC<SchemaVisualizerProps> = ({ schema }) => {
             })}
           </ul>
         </div>
-      )}
+      )} */}
     </div>
   )
 }

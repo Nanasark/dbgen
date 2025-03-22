@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   try {
     const { messages, projectId } = await request.json();
 
-    // Get the current project schema from Supabase
+    // Get current project schema from Supabase
     const { data: project, error: projectError } = await supabase
       .from("projects")
       .select("*")
@@ -19,51 +19,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: projectError.message }, { status: 500 });
     }
 
-    const currentSchema = project.schema || {};
-    const userMessage = messages[messages.length - 1].content.toLowerCase();
+    console.log(project)
 
-    // Predefined Employee Schema if requested and no schema exists
-    if (userMessage.includes("employee") && Object.keys(currentSchema).length === 0) {
-      const employeeSchema: Schema = {
-        Users: {
-          columns: {
-            id: { type: "int", primaryKey: true },
-            name: { type: "varchar" },
-            email: { type: "varchar" },
-            password: { type: "varchar" },
-            phone: { type: "varchar" },
-          },
-        },
-        Roles: {
-          columns: {
-            id: { type: "int", primaryKey: true },
-            role_name: { type: "varchar" },
-          },
-        },
-        Login_History: {
-          columns: {
-            id: { type: "int", primaryKey: true },
-            user_id: { type: "int", foreignKey: { table: "Users", column: "id" } },
-            login_time: { type: "Timestamp" },
-            ip_address: { type: "varchar" },
-          },
-        },
-        Permissions: {
-          columns: {
-            id: { type: "int", primaryKey: true },
-            role_id: { type: "int", foreignKey: { table: "Roles", column: "id" } },
-            permission_name: { type: "varchar" },
-            permission_id: { type: "int" },
-          },
-        },
-      };
-
-      return NextResponse.json({
-        message:
-          "I've created an employee database schema with Users, Roles, Login History, and Permissions tables. Would you like any modifications?",
-        schema: employeeSchema,
-      });
-    }
+    // const currentSchema = project.schema || {};
+    // const userMessage = messages[messages.length - 1].content.toLowerCase();
 
     // Check for Gemini API key
     const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -82,11 +41,23 @@ export async function POST(request: Request) {
       },
     });
 
-    // System prompt to ensure clean JSON response
-    const systemPrompt = `You are an expert database designer. 
-Return only a JSON schema, without additional text.
-if what they say does not make sense ask a simple one line follow up question to understand them
-Format it like this:
+    // System prompt to ensure clean JSON response or short answers
+    const systemPrompt = `You are an expert database designer.
+
+**Rules for Responses:**
+- If the user provides **clear** requirements, generate a **JSON schema only** (no extra text).  
+- If the request is **unclear**, ask **one or two** short follow-up questions to gather more details.  
+- If asked a **general question**, reply in **1-2 sentences** with a clear answer.  
+- Keep responses concise and relevant.  
+- NEVER assume details—always confirm when necessary.
+
+**Example Questions to Ask Before Generating a Schema:**
+- What type of project is this for? (e.g., E-commerce, School Management, Social Media)
+- What entities (tables) should be included?
+- What key relationships should exist between the tables?
+- Do you need authentication or user roles?
+
+**Schema Format (Only return this if the requirements are clear):**
 {
   "TableName": {
     "columns": {
@@ -101,9 +72,12 @@ Format it like this:
   }
 }`;
 
+
+
     // Format messages for Gemini
     const formattedMessages = [
       { role: "user", parts: [{ text: systemPrompt }] },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...messages.map((msg: any) => ({
         role: msg.role === "user" ? "user" : "model",
         parts: [{ text: msg.content }],
@@ -123,27 +97,31 @@ Format it like this:
 
     const text = result.response.text();
 
-    // Improved JSON extraction from response
+    // Improved JSON extraction logic
     let schema: Schema | null = null;
-    try {
-      const jsonStartIndex = text.indexOf("{");
-      const jsonEndIndex = text.lastIndexOf("}");
+    let responseMessage = "";
 
-      if (jsonStartIndex !== -1 && jsonEndIndex !== -1) {
-        const jsonText = text.substring(jsonStartIndex, jsonEndIndex + 1);
-        schema = JSON.parse(jsonText);
+    try {
+      // Extract JSON from response
+      const jsonMatch = text.match(/\{[\s\S]*\}/); // Extracts first JSON-like structure
+      if (jsonMatch) {
+        schema = JSON.parse(jsonMatch[0]);
+      } else {
+        responseMessage = text.trim(); // If no JSON, treat it as a short answer
       }
     } catch (error) {
       console.error("Error extracting schema:", error);
+      responseMessage = "I couldn't extract a valid schema. Can you rephrase?";
     }
 
-    // Store schema in Supabase
+    // Store schema in Supabase if it's valid
     if (schema) {
       await supabase.from("projects").update({ schema }).eq("id", projectId);
+      responseMessage = "Schema generated successfully.";
     }
 
     return NextResponse.json({
-      message: schema ? "Schema generated successfully." : "Failed to generate schema.",
+      message: responseMessage,
       schema: schema,
     });
   } catch (error) {
