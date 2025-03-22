@@ -27,11 +27,16 @@ export async function GET(request: Request, {
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request,{
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
   try {
     const body = await request.json()
+    const {id} = await params
 
-    const { data, error } = await supabase.from("projects").update(body).eq("id", params.id).select().single()
+    const { data, error } = await supabase.from("projects").update(body).eq("id", id).select().single()
 
     if (error) {
       console.error("Error updating project:", error)
