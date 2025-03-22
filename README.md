@@ -19,8 +19,8 @@ This project is an AI-powered database schema generator that helps users design 
 ## Installation
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-repo/ai-database-schema-generator.git
-   cd ai-database-schema-generator
+   git clone https://github.com/nanasark/dbgen.git
+   cd dbgen
    ```
 2. Install dependencies:
    ```sh
