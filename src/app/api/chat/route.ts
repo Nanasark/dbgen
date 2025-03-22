@@ -19,11 +19,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: projectError.message }, { status: 500 });
     }
 
-    console.log(project)
+    console.log(project);
 
-    // const currentSchema = project.schema || {};
-    // const userMessage = messages[messages.length - 1].content.toLowerCase();
+    const userMessage = messages[messages.length - 1].content.toLowerCase();
 
+    // ✅ List of casual messages that should NOT trigger schema generation
+    const casualMessages = [
+      "thank you", "thanks", "great job", "well done", "awesome", "good work",
+      "tell me a joke", "hi", "hello", "hey"
+    ];
+
+    // ✅ If user sends a casual message, return a polite response WITHOUT schema
+    if (casualMessages.includes(userMessage)) {
+      return NextResponse.json({
+        message: "You're welcome! Let me know if you need help with database design.",
+        schema: null,
+      });
+    }
 
     const geminiApiKey = process.env.GEMINI_API_KEY;
     if (!geminiApiKey) {
@@ -47,6 +59,7 @@ export async function POST(request: Request) {
 **Rules for Responses:**
 - If the user provides **clear** requirements, generate a **JSON schema only** (no extra text).  
 - If the request is **unclear**, ask **one or two** short follow-up questions to gather more details.  
+- If they say "thank you" or a similar phrase, simply respond politely and do nothing else.  
 - If asked a **general question**, reply in **1-2 sentences** with a clear answer.  
 - Keep responses concise and relevant.  
 - NEVER assume details—always confirm when necessary.
@@ -71,8 +84,6 @@ export async function POST(request: Request) {
     }
   }
 }`;
-
-
 
     // Format messages for Gemini
     const formattedMessages = [
