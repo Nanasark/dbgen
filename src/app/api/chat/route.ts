@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     // const currentSchema = project.schema || {};
     // const userMessage = messages[messages.length - 1].content.toLowerCase();
 
-    // Check for Gemini API key
+
     const geminiApiKey = process.env.GEMINI_API_KEY;
     if (!geminiApiKey) {
       return NextResponse.json({ error: "GEMINI_API_KEY is not set" }, { status: 500 });

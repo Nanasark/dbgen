@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI-Powered Database Schema Generator
 
-## Getting Started
+## Overview
+This project is an AI-powered database schema generator that helps users design database structures based on natural language prompts. It utilizes Google Generative AI to understand user input, ask clarifying questions, and generate appropriate database schemas.
 
-First, run the development server:
+## Features
+- **Conversational Schema Design**: The AI interacts with users to gather project requirements.
+- **Automated Schema Generation**: Produces JSON-based database schemas.
+- **Schema Storage**: Saves generated schemas in Supabase for persistence.
+- **Customizable Responses**: Ensures short and relevant AI responses.
+- **Many-to-Many Relationship Handling**: Supports complex relationships in schema design.
 
-```bash
+## Technology Stack
+- **Next.js**: Framework for building server-side rendered React applications.
+- **Google Generative AI (Gemini 2.0)**: Powers the AI-driven schema generation.
+- **Supabase**: Database and storage for saving schemas.
+- **TypeScript**: Ensures type safety and code maintainability.
+
+## Installation
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/your-repo/ai-database-schema-generator.git
+   cd ai-database-schema-generator
+   ```
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+3. Set up environment variables:
+   - Create a `.env.local` file and add the following:
+     ```sh
+     GEMINI_API_KEY=your_google_gemini_api_key
+     NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+    SUPABASE_SERVICE_ROLE_KEY=your_supabase_anon_key
+     ```
+
+## Running the Project
+To start the development server, run:
+```sh
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+The application will be available at `http://localhost:3000`.
+
+## API Endpoints
+### **POST /api/chat**
+Handles user queries and generates database schemas.
+#### Request Body:
+```json
+{
+  "messages": [
+    { "role": "user", "content": "Create a database for my club members" }
+  ],
+  "projectId": "12345"
+}
+```
+#### Response:
+```json
+{
+  "message": "Schema generated successfully.",
+  "schema": {
+    "Members": {
+      "columns": {
+        "id": { "type": "int", "primaryKey": true },
+        "name": { "type": "varchar" },
+        "email": { "type": "varchar", "unique": true },
+        "join_date": { "type": "date" }
+      }
+    }
+  }
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Usage
+1. Start a conversation by describing your database needs.
+2. The AI may ask follow-up questions to refine the schema.
+3. The generated schema is returned as structured JSON.
+4. You can save, modify, or use the schema as needed.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Testing
+- **Unit Testing**: Validate API responses and schema generation.
+- **Integration Testing**: Ensure proper interaction with Supabase.
+- **Manual Testing**: Check AI responses for accuracy.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Future Improvements
+- Support for more AI models.
+- Enhanced UI for schema visualization.
+- Export schema as SQL or other formats.
 
-## Learn More
+## License
+This project is licensed under the MIT License.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

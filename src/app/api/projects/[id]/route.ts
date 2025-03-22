@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, {
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
   try {
-    const { data, error } = await supabase.from("projects").select("*").eq("id", params.id).single()
+
+    const {id} = await params
+    const { data, error } = await supabase.from("projects").select("*").eq("id", id).single()
 
     if (error) {
       console.error("Error fetching project:", error)
